@@ -2,7 +2,6 @@ package com.example.teamcity.api.spec;
 
 import com.example.teamcity.api.config.Config;
 import com.example.teamcity.api.models.User;
-import io.restassured.authentication.AuthenticationScheme;
 import io.restassured.authentication.BasicAuthScheme;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;
@@ -13,16 +12,20 @@ import io.restassured.specification.RequestSpecification;
 import java.util.List;
 
 public class Specifications {
-    private static Specifications spec;
+    private static volatile Specifications instance;
 
     private Specifications() {
     }
 
-    public static Specifications getSpec() {
-        if (spec == null) {
-            spec = new Specifications();
+    public static Specifications getInstance() {
+        if (instance == null) {
+            synchronized (Specifications.class) {
+                if (instance == null) {
+                    instance = new Specifications();
+                }
+            }
         }
-        return spec;
+        return instance;
     }
 
     private RequestSpecBuilder reqSpecBuilder() {
