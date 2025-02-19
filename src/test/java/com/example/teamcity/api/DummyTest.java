@@ -1,0 +1,30 @@
+package com.example.teamcity.api;
+
+import com.example.teamcity.BaseTest;
+import com.example.teamcity.api.models.User;
+import com.example.teamcity.api.spec.Specifications;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.http.ContentType;
+import org.testng.annotations.Test;
+
+import java.util.List;
+
+public class DummyTest extends BaseTest {
+    @Test
+    public void unauthUser() {
+        RestAssured.
+                given().
+                spec(Specifications.getSpec().unAuthSpec()).
+                get("/app/rest/projects");
+    }
+
+    @Test
+    public void userShouldBeAbleGetAllProjects() {
+        RestAssured.
+                given().
+                spec(Specifications.getSpec().authSpec(User.builder().user("admin").password("admin").build())).
+                get("/app/rest/projects");
+    }
+}
