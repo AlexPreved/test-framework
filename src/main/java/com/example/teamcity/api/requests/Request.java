@@ -4,11 +4,11 @@ import com.example.teamcity.api.enums.Endpoint;
 import io.restassured.specification.RequestSpecification;
 
 /*
- * Содержит токен авторизации, relative url, model
+ * Содержит уникальные параметры конкретного запроса: кем слать(токен авторизации), relative url, model
  */
 public class Request {
-    private final RequestSpecification specification;
-    private final Endpoint endpoint;
+    protected final RequestSpecification specification;
+    protected final Endpoint endpoint;
 
     public Request(RequestSpecification specification, Endpoint endpoint) {
         this.specification = specification;
