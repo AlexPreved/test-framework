@@ -12,23 +12,8 @@ import io.restassured.specification.RequestSpecification;
 import java.util.List;
 
 public class Specifications {
-    private static volatile Specifications instance;
 
-    private Specifications() {
-    }
-
-    public static Specifications getInstance() {
-        if (instance == null) {
-            synchronized (Specifications.class) {
-                if (instance == null) {
-                    instance = new Specifications();
-                }
-            }
-        }
-        return instance;
-    }
-
-    private RequestSpecBuilder reqSpecBuilder() {
+    private static RequestSpecBuilder reqSpecBuilder() {
         RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
         requestSpecBuilder.setContentType(ContentType.JSON);
         requestSpecBuilder.setAccept(ContentType.JSON);
@@ -37,13 +22,20 @@ public class Specifications {
         return requestSpecBuilder;
     }
 
-    public RequestSpecification unAuthSpec() {
+    public static RequestSpecification unAuthSpec() {
         return reqSpecBuilder().build();
     }
 
-    public RequestSpecification authSpec(User user) {
+    public static RequestSpecification superUserAuth() {
         BasicAuthScheme basicAuthScheme = new BasicAuthScheme();
-        basicAuthScheme.setUserName(user.getUser());
+        basicAuthScheme.setUserName("");
+        basicAuthScheme.setPassword(Config.getProperty("superuser.token"));
+        return reqSpecBuilder().setAuth(basicAuthScheme).build();
+    }
+
+    public static RequestSpecification authSpec(User user) {
+        BasicAuthScheme basicAuthScheme = new BasicAuthScheme();
+        basicAuthScheme.setUserName(user.getUsername());
         basicAuthScheme.setPassword(user.getPassword());
         return reqSpecBuilder().setAuth(basicAuthScheme).build();
     }

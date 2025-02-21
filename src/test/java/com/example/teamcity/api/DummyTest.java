@@ -11,7 +11,7 @@ public class DummyTest extends BaseTest {
     public void unauthUser() {
         RestAssured.
                 given().
-                spec(Specifications.getInstance().unAuthSpec()).
+                spec(Specifications.unAuthSpec()).
                 get("/app/rest/projects");
     }
 
@@ -19,7 +19,7 @@ public class DummyTest extends BaseTest {
     public void userShouldBeAbleGetAllProjects() {
         RestAssured.
                 given().
-                spec(Specifications.getInstance().authSpec(User.builder().user("admin").password("admin").build())).
+                spec(Specifications.authSpec(User.builder().username("admin").password("admin").build())).
                 get("/app/rest/projects");
     }
 }
