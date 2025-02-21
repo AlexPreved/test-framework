@@ -2,6 +2,7 @@ package com.example.teamcity.api;
 
 import com.example.teamcity.api.enums.Endpoint;
 import com.example.teamcity.api.generators.TestDataGenerator;
+import com.example.teamcity.api.models.Project;
 import com.example.teamcity.api.models.User;
 import com.example.teamcity.api.requests.checked.CheckedBase;
 import com.example.teamcity.api.spec.Specifications;
@@ -13,13 +14,18 @@ import static io.qameta.allure.Allure.step;
 public class BuildTypeTest {
     @Test(description = "User should be able to create build type", groups = {"Positive", "CRUD"})
     public void testUserCreatesBuildType_Returns200_WhenTypeNotExists() {
+        User newUser = TestDataGenerator.generate(User.class);
         step("Create user", () -> {
-            User newUser = TestDataGenerator.generate(User.class);
-
             CheckedBase<User> requester = new CheckedBase<>(Specifications.superUserAuth(), Endpoint.USERS);
             requester.create(newUser);
         });
-        step("Create project by user");
+        Project project = TestDataGenerator.generate(Project.class);
+        step("Create project by user", () -> {
+            //fail-first подход
+            CheckedBase<Project> requester = new CheckedBase<>(Specifications.authSpec(newUser), Endpoint.PROJECTS);
+            requester.create(project);
+
+        });
         step("Create buildType in project by user");
         step("Check buildtype was created successfully");
 
