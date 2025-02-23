@@ -17,39 +17,13 @@ public class BuildTypeTest extends BaseApiTest {
     @Test(description = "User should be able to create build type", groups = {"Positive", "CRUD"})
     public void testUserCreatesBuildType_Returns200_WhenTypeNotExists() {
         User createdUser = createUser();
-        Project responseProject = createProjectByUser(createdUser);
-        BuildType buildType = createBuildTypeInProjectByUser(createdUser, responseProject);
-        checkBuildTypeCreatedSuccessfully(createdUser, buildType);
-    }
-
-    @Step("Create a new user")
-    private User createUser() {
-        User newUser = TestDataGenerator.generate(User.class);
-        CheckedBase<User> requester = new CheckedBase<>(Specifications.superUserAuthSpec(), Endpoint.USERS);
-        requester.create(newUser);
-        return newUser;
-    }
-
-    @Step("Create a new project by user")
-    private Project createProjectByUser(User user) {
-        Project project = TestDataGenerator.generate(Project.class);
-        CheckedBase<Project> requester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.PROJECTS);
-        return requester.create(project);
-    }
-
-    @Step("Create a new build type in project by user")
-    private BuildType createBuildTypeInProjectByUser(User user, Project project) {
-        BuildType buildType = TestDataGenerator.generate(BuildType.class);
-        buildType.setProject(Project.builder().id(project.getId()).locator(null).build());
-        CheckedBase<BuildType> requester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.BUILD_TYPES);
-        return requester.create(buildType);
-    }
-
-    @Step("Check build type was created successfully")
-    private void checkBuildTypeCreatedSuccessfully(User user, BuildType buildType) {
-        CheckedBase<BuildType> requester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.BUILD_TYPES);
-        BuildType createdBuildType = requester.read(buildType.getId());
-        softAssert.assertEquals(buildType.getName(), createdBuildType.getName(), "Build type name is not correct");
+        Project createdProject = createProjectByUser(createdUser);
+        BuildType createdBuildType = createBuildTypeInProjectByUser(createdUser, createdProject);
+        step("Check build type was created successfully", () -> {
+            CheckedBase<BuildType> requester = new CheckedBase<>(Specifications.authSpec(createdUser), Endpoint.BUILD_TYPES);
+            BuildType buildTypeGetById = requester.read(createdBuildType.getId());
+            softAssert.assertEquals(createdBuildType.getName(), buildTypeGetById.getName(), "Build type name is not correct");
+        });
     }
 
     @Test(description = "User should not be able to create build type with not unique id", groups = {"Negative", "CRUD"})
