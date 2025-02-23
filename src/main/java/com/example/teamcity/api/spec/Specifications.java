@@ -26,7 +26,7 @@ public class Specifications {
         return reqSpecBuilder().build();
     }
 
-    public static RequestSpecification superUserAuth() {
+    public static RequestSpecification superUserAuthSpec() {
         BasicAuthScheme basicAuthScheme = new BasicAuthScheme();
         basicAuthScheme.setUserName("");
         basicAuthScheme.setPassword(Config.getProperty("superuser.token"));

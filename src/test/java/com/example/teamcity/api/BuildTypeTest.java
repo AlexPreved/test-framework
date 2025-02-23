@@ -2,33 +2,54 @@ package com.example.teamcity.api;
 
 import com.example.teamcity.api.enums.Endpoint;
 import com.example.teamcity.api.generators.TestDataGenerator;
+import com.example.teamcity.api.models.BuildType;
 import com.example.teamcity.api.models.Project;
 import com.example.teamcity.api.models.User;
 import com.example.teamcity.api.requests.checked.CheckedBase;
 import com.example.teamcity.api.spec.Specifications;
+import io.qameta.allure.Step;
 import org.testng.annotations.Test;
 
 import static io.qameta.allure.Allure.step;
 
 @Test(groups = {"Regression"})
-public class BuildTypeTest {
+public class BuildTypeTest extends BaseApiTest {
     @Test(description = "User should be able to create build type", groups = {"Positive", "CRUD"})
     public void testUserCreatesBuildType_Returns200_WhenTypeNotExists() {
+        User createdUser = createUser();
+        Project responseProject = createProjectByUser(createdUser);
+        BuildType buildType = createBuildTypeInProjectByUser(createdUser, responseProject);
+        checkBuildTypeCreatedSuccessfully(createdUser, buildType);
+    }
+
+    @Step("Create a new user")
+    private User createUser() {
         User newUser = TestDataGenerator.generate(User.class);
-        step("Create user", () -> {
-            CheckedBase<User> requester = new CheckedBase<>(Specifications.superUserAuth(), Endpoint.USERS);
-            requester.create(newUser);
-        });
+        CheckedBase<User> requester = new CheckedBase<>(Specifications.superUserAuthSpec(), Endpoint.USERS);
+        requester.create(newUser);
+        return newUser;
+    }
+
+    @Step("Create a new project by user")
+    private Project createProjectByUser(User user) {
         Project project = TestDataGenerator.generate(Project.class);
-        step("Create project by user", () -> {
-            //fail-first подход
-            CheckedBase<Project> requester = new CheckedBase<>(Specifications.authSpec(newUser), Endpoint.PROJECTS);
-            requester.create(project);
+        CheckedBase<Project> requester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.PROJECTS);
+        return requester.create(project);
+    }
 
-        });
-        step("Create buildType in project by user");
-        step("Check buildtype was created successfully");
+    @Step("Create a new build type in project by user")
+    private BuildType createBuildTypeInProjectByUser(User user, Project project) {
+        BuildType buildType = TestDataGenerator.generate(BuildType.class);
+        buildType.setProject(Project.builder().id(project.getId()).locator(null).build());
+        CheckedBase<BuildType> requester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.BUILD_TYPES);
+        return requester.create(buildType);
+    }
 
+    @Step("Check build type was created successfully")
+    private void checkBuildTypeCreatedSuccessfully(User user, BuildType buildType) {
+        CheckedBase<BuildType> requester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.BUILD_TYPES);
+        BuildType createdBuildType = requester.read(buildType.getId());
+        softAssert.assertEquals(buildType.getName(), createdBuildType.getName(), "Build type name is not correct");
     }
 
     @Test(description = "User should not be able to create build type with not unique id", groups = {"Negative", "CRUD"})
