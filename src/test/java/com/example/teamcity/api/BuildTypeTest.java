@@ -10,20 +10,29 @@ import com.example.teamcity.api.spec.Specifications;
 import io.qameta.allure.Step;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import static io.qameta.allure.Allure.step;
 
 @Test(groups = {"Regression"})
 public class BuildTypeTest extends BaseApiTest {
     @Test(description = "User should be able to create build type", groups = {"Positive", "CRUD"})
     public void testUserCreatesBuildType_Returns200_WhenTypeNotExists() {
-        User createdUser = createUser();
-        Project createdProject = createProjectByUser(createdUser);
-        BuildType createdBuildType = createBuildTypeInProjectByUser(createdUser, createdProject);
-        step("Check build type was created successfully", () -> {
-            CheckedBase<BuildType> requester = new CheckedBase<>(Specifications.authSpec(createdUser), Endpoint.BUILD_TYPES);
-            BuildType buildTypeGetById = requester.read(createdBuildType.getId());
-            softAssert.assertEquals(createdBuildType.getName(), buildTypeGetById.getName(), "Build type name is not correct");
-        });
+        User user = TestDataGenerator.generate(User.class);
+        CheckedBase<User> UserRequester = new CheckedBase<>(Specifications.superUserAuthSpec(), Endpoint.USERS);
+        UserRequester.create(user);
+
+        Project project = TestDataGenerator.generate(Project.class);
+        CheckedBase<Project> projectRequester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.PROJECTS);
+        project = projectRequester.create(project);
+
+        BuildType buildType = TestDataGenerator.generate(Collections.singletonList(project), BuildType.class);
+        CheckedBase<BuildType> buildTypeRequester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.BUILD_TYPES);
+        buildTypeRequester.create(buildType);
+
+        BuildType createdBuildType = buildTypeRequester.read(buildType.getId());
+        softAssert.assertEquals(buildType.getName(), createdBuildType.getName(), "Build type name is not correct");
     }
 
     @Test(description = "User should not be able to create build type with not unique id", groups = {"Negative", "CRUD"})
