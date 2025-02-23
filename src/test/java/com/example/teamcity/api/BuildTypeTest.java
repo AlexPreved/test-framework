@@ -5,6 +5,7 @@ import com.example.teamcity.api.generators.TestDataGenerator;
 import com.example.teamcity.api.models.BuildType;
 import com.example.teamcity.api.models.Project;
 import com.example.teamcity.api.models.User;
+import com.example.teamcity.api.requests.CheckedRequests;
 import com.example.teamcity.api.requests.checked.CheckedBase;
 import com.example.teamcity.api.spec.Specifications;
 import io.qameta.allure.Step;
@@ -20,18 +21,22 @@ public class BuildTypeTest extends BaseApiTest {
     @Test(description = "User should be able to create build type", groups = {"Positive", "CRUD"})
     public void testUserCreatesBuildType_Returns200_WhenTypeNotExists() {
         User user = TestDataGenerator.generate(User.class);
-        CheckedBase<User> UserRequester = new CheckedBase<>(Specifications.superUserAuthSpec(), Endpoint.USERS);
-        UserRequester.create(user);
+
+
+        superUserCheckRequests.getRequest(Endpoint.USERS).create(user);
+        CheckedRequests userCheckRequests = new CheckedRequests(Specifications.authSpec(user));
 
         Project project = TestDataGenerator.generate(Project.class);
-        CheckedBase<Project> projectRequester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.PROJECTS);
-        project = projectRequester.create(project);
+
+
+        project = userCheckRequests.<Project>getRequest(Endpoint.PROJECTS).create(project);
 
         BuildType buildType = TestDataGenerator.generate(Collections.singletonList(project), BuildType.class);
-        CheckedBase<BuildType> buildTypeRequester = new CheckedBase<>(Specifications.authSpec(user), Endpoint.BUILD_TYPES);
-        buildTypeRequester.create(buildType);
 
-        BuildType createdBuildType = buildTypeRequester.read(buildType.getId());
+
+        userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType);
+
+        BuildType createdBuildType = userCheckRequests.<BuildType>getRequest(Endpoint.BUILD_TYPES).read(buildType.getId());
         softAssert.assertEquals(buildType.getName(), createdBuildType.getName(), "Build type name is not correct");
     }
 
