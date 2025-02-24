@@ -57,12 +57,15 @@ public class BuildTypeTest extends BaseApiTest {
 
         userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType1);
 
-        new UncheckedBase(Specifications.authSpec(user), Endpoint.BUILD_TYPES)
-                .create(buildType2)
-                        .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
+//        new UncheckedBase(Specifications.authSpec(user), Endpoint.BUILD_TYPES)
+//                .create(buildType2)
+//                        .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
+//                .body(Matchers.containsString("The build configuration / template ID \"%s\" is already used by another configuration or template".formatted(buildType2.getId())));
+       UncheckedRequests userUncheckedRequests = new UncheckedRequests(Specifications.authSpec(user));
+       userUncheckedRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType2)
+               .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.containsString("The build configuration / template ID \"%s\" is already used by another configuration or template".formatted(buildType2.getId())));
-//        UncheckedRequests userUncheckedRequests = new UncheckedRequests(Specifications.authSpec(user));
-//        userUncheckedRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType2);
+
 
 
         step("Create buildType2 in project by user with the same id");
