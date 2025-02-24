@@ -6,9 +6,12 @@ import com.example.teamcity.api.models.BuildType;
 import com.example.teamcity.api.models.Project;
 import com.example.teamcity.api.models.User;
 import com.example.teamcity.api.requests.CheckedRequests;
-import com.example.teamcity.api.requests.checked.CheckedBase;
+import com.example.teamcity.api.requests.UncheckedRequests;
+import com.example.teamcity.api.requests.unchecked.UncheckedBase;
 import com.example.teamcity.api.spec.Specifications;
 import io.qameta.allure.Step;
+import org.apache.http.HttpStatus;
+import org.hamcrest.Matchers;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -22,7 +25,6 @@ public class BuildTypeTest extends BaseApiTest {
     public void testUserCreatesBuildType_Returns200_WhenTypeNotExists() {
         User user = TestDataGenerator.generate(User.class);
 
-
         superUserCheckRequests.getRequest(Endpoint.USERS).create(user);
         CheckedRequests userCheckRequests = new CheckedRequests(Specifications.authSpec(user));
 
@@ -33,7 +35,6 @@ public class BuildTypeTest extends BaseApiTest {
 
         BuildType buildType = TestDataGenerator.generate(Collections.singletonList(project), BuildType.class);
 
-
         userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType);
 
         BuildType createdBuildType = userCheckRequests.<BuildType>getRequest(Endpoint.BUILD_TYPES).read(buildType.getId());
@@ -42,9 +43,28 @@ public class BuildTypeTest extends BaseApiTest {
 
     @Test(description = "User should not be able to create build type with not unique id", groups = {"Negative", "CRUD"})
     public void testUserCreatesBuildType_Returns000_WhenTypeIdNotUnique() {
-        step("Create user");
-        step("Create project by user");
-        step("Create buildType1 in project by user");
+        User user = TestDataGenerator.generate(User.class);
+
+        superUserCheckRequests.getRequest(Endpoint.USERS).create(user);
+        CheckedRequests userCheckRequests = new CheckedRequests(Specifications.authSpec(user));
+
+        Project project = TestDataGenerator.generate(Project.class);
+
+        project = userCheckRequests.<Project>getRequest(Endpoint.PROJECTS).create(project);
+
+        BuildType buildType1 = TestDataGenerator.generate(Collections.singletonList(project), BuildType.class);
+        BuildType buildType2 = TestDataGenerator.generate(Collections.singletonList(project), BuildType.class, buildType1.getId());
+
+        userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType1);
+
+        new UncheckedBase(Specifications.authSpec(user), Endpoint.BUILD_TYPES)
+                .create(buildType2)
+                        .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(Matchers.containsString("The build configuration / template ID \"%s\" is already used by another configuration or template".formatted(buildType2.getId())));
+//        UncheckedRequests userUncheckedRequests = new UncheckedRequests(Specifications.authSpec(user));
+//        userUncheckedRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType2);
+
+
         step("Create buildType2 in project by user with the same id");
         step("Check buildtype2 was not created with statusCode 401");
 
