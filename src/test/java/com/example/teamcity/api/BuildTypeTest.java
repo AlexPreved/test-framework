@@ -4,17 +4,14 @@ import com.example.teamcity.api.enums.Endpoint;
 import com.example.teamcity.api.generators.TestDataGenerator;
 import com.example.teamcity.api.models.BuildType;
 import com.example.teamcity.api.models.Project;
-import com.example.teamcity.api.models.User;
 import com.example.teamcity.api.requests.CheckedRequests;
 import com.example.teamcity.api.requests.UncheckedRequests;
-import com.example.teamcity.api.requests.unchecked.UncheckedBase;
 import com.example.teamcity.api.spec.Specifications;
-import io.qameta.allure.Step;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
+
 import java.util.Collections;
 
 import static io.qameta.allure.Allure.step;
@@ -23,48 +20,37 @@ import static io.qameta.allure.Allure.step;
 public class BuildTypeTest extends BaseApiTest {
     @Test(description = "User should be able to create build type", groups = {"Positive", "CRUD"})
     public void testUserCreatesBuildType_Returns200_WhenTypeNotExists() {
-        User user = TestDataGenerator.generate(User.class);
+        superUserCheckRequests.getRequest(Endpoint.USERS).create(testData.getUser());
+        CheckedRequests userCheckRequests = new CheckedRequests(Specifications.authSpec(testData.getUser()));
 
-        superUserCheckRequests.getRequest(Endpoint.USERS).create(user);
-        CheckedRequests userCheckRequests = new CheckedRequests(Specifications.authSpec(user));
+        userCheckRequests.<Project>getRequest(Endpoint.PROJECTS).create(testData.getProject());
 
-        Project project = TestDataGenerator.generate(Project.class);
+        userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(testData.getBuildType());
 
-
-        project = userCheckRequests.<Project>getRequest(Endpoint.PROJECTS).create(project);
-
-        BuildType buildType = TestDataGenerator.generate(Collections.singletonList(project), BuildType.class);
-
-        userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType);
-
-        BuildType createdBuildType = userCheckRequests.<BuildType>getRequest(Endpoint.BUILD_TYPES).read(buildType.getId());
-        softAssert.assertEquals(buildType.getName(), createdBuildType.getName(), "Build type name is not correct");
+        BuildType createdBuildType = userCheckRequests.<BuildType>getRequest(Endpoint.BUILD_TYPES).read(testData.getBuildType().getId());
+        softAssert.assertEquals(testData.getBuildType().getName(), createdBuildType.getName(), "Build type name is not correct");
     }
 
     @Test(description = "User should not be able to create build type with not unique id", groups = {"Negative", "CRUD"})
-    public void testUserCreatesBuildType_Returns000_WhenTypeIdNotUnique() {
-        User user = TestDataGenerator.generate(User.class);
+    public void testUserCreatesBuildType_Returns400_WhenTypeIdNotUnique() {
+        BuildType buildTypeWithSameId = TestDataGenerator.generate(Collections.singletonList(testData.getProject()), BuildType.class, testData.getBuildType().getId());
 
-        superUserCheckRequests.getRequest(Endpoint.USERS).create(user);
-        CheckedRequests userCheckRequests = new CheckedRequests(Specifications.authSpec(user));
+        superUserCheckRequests.getRequest(Endpoint.USERS).create(testData.getUser());
+        CheckedRequests userCheckRequests = new CheckedRequests(Specifications.authSpec(testData.getUser()));
 
-        Project project = TestDataGenerator.generate(Project.class);
+        userCheckRequests.<Project>getRequest(Endpoint.PROJECTS).create(testData.getProject());
 
-        project = userCheckRequests.<Project>getRequest(Endpoint.PROJECTS).create(project);
 
-        BuildType buildType1 = TestDataGenerator.generate(Collections.singletonList(project), BuildType.class);
-        BuildType buildType2 = TestDataGenerator.generate(Collections.singletonList(project), BuildType.class, buildType1.getId());
-
-        userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType1);
+        userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(testData.getBuildType());
 
 //        new UncheckedBase(Specifications.authSpec(user), Endpoint.BUILD_TYPES)
 //                .create(buildType2)
 //                        .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
 //                .body(Matchers.containsString("The build configuration / template ID \"%s\" is already used by another configuration or template".formatted(buildType2.getId())));
-       UncheckedRequests userUncheckedRequests = new UncheckedRequests(Specifications.authSpec(user));
-       userUncheckedRequests.getRequest(Endpoint.BUILD_TYPES).create(buildType2)
+       UncheckedRequests userUncheckedRequests = new UncheckedRequests(Specifications.authSpec(testData.getUser()));
+       userUncheckedRequests.getRequest(Endpoint.BUILD_TYPES).create(buildTypeWithSameId)
                .then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString("The build configuration / template ID \"%s\" is already used by another configuration or template".formatted(buildType2.getId())));
+                .body(Matchers.containsString("The build configuration / template ID \"%s\" is already used by another configuration or template".formatted(buildTypeWithSameId.getId())));
 
 
 
