@@ -28,22 +28,22 @@ public final class CheckedBase<T extends BaseModel> extends Request implements C
     }
 
     @Override
-    public T read(String id) {
-        return (T) uncheckedBase.read(id)
+    public T read(String locator) {
+        return (T) uncheckedBase.read(locator)
                 .then().statusCode(HttpStatus.SC_OK)
                 .extract().as(endpoint.getResponseModelClass());
     }
 
     @Override
-    public T update(String id, BaseModel requestModel) {
-        return (T) uncheckedBase.update(id, requestModel)
+    public T update(String locator, BaseModel requestModel) {
+        return (T) uncheckedBase.update(locator, requestModel)
                 .then().statusCode(HttpStatus.SC_OK)
                 .extract().as(endpoint.getResponseModelClass());
     }
 
     @Override
-    public String delete(String id) {
-        return uncheckedBase.delete(id)
+    public String delete(String locator) {
+        return uncheckedBase.delete(locator)
                 .then().statusCode(HttpStatus.SC_OK)
                 .extract().asString();
     }

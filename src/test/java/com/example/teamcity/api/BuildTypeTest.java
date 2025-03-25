@@ -27,7 +27,7 @@ public class BuildTypeTest extends BaseApiTest {
 
         userCheckRequests.getRequest(Endpoint.BUILD_TYPES).create(testData.getBuildType());
 
-        BuildType createdBuildType = userCheckRequests.<BuildType>getRequest(Endpoint.BUILD_TYPES).read(testData.getBuildType().getId());
+        BuildType createdBuildType = userCheckRequests.<BuildType>getRequest(Endpoint.BUILD_TYPES).read("id:" + testData.getBuildType().getId());
         softAssert.assertEquals(testData.getBuildType().getName(), createdBuildType.getName(), "Build type name is not correct");
     }
 
