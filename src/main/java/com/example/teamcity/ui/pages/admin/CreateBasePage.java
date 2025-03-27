@@ -12,7 +12,7 @@ public abstract class CreateBasePage extends BasePage {
 
     protected SelenideElement urlInput = $("#url");
     protected SelenideElement submitButton = $(Selectors.byAttribute("value", "Proceed"));
-    protected SelenideElement buildTypeInput = $("#buildTypeName");
+    protected SelenideElement buildTypeNameInput = $("#buildTypeName");
     protected SelenideElement connectionSuccessfulMessage = $(".connectionSuccessful");
 
     protected void baseCreateForm(String url) {

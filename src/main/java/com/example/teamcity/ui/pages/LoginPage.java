@@ -18,12 +18,12 @@ public class LoginPage extends BasePage {
         return Selenide.open(LOGIN_URL, LoginPage.class);
     }
 
-    public ProjectsPage login(User user) {
+    public AllProjectsPage login(User user) {
         //val() = clear() + sendKeys()
         inputUsername.val(user.getUsername());
         inputPassword.val(user.getPassword());
         loginButton.click();
 
-        return Selenide.page(ProjectsPage.class);
+        return Selenide.page(AllProjectsPage.class);
     }
 }

@@ -3,6 +3,7 @@ package com.example.teamcity.ui;
 import com.codeborne.selenide.Condition;
 import com.example.teamcity.api.enums.Endpoint;
 import com.example.teamcity.api.models.Project;
+import com.example.teamcity.ui.pages.AllProjectsPage;
 import com.example.teamcity.ui.pages.ProjectPage;
 import com.example.teamcity.ui.pages.admin.CreateProjectPage;
 import lombok.val;
@@ -40,6 +41,10 @@ public class CreateProjectTest extends BaseUiTest {
         step("Check that project is visible on Projects Page (http://localhost:8111/favorite/projects)");
         ProjectPage.open(createdProject.getId())
                 .title.shouldHave(Condition.exactText(testData.getProject().getName()));
+
+        var projectExists = AllProjectsPage.open().getProjects().stream().anyMatch(project ->
+                project.getName().text().equals(testData.getProject().getName()));
+        softAssert.assertTrue(projectExists);
     }
 
     @Test(description = "User should not be able to craete project without name", groups = {"Negative"})
